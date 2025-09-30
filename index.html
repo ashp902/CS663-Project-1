@@ -593,6 +593,10 @@
             position: relative; /* ensures absolute positioning works */
         }
 
+        #muteBtn {
+            transform: scale(0.6);
+        }
+
         @media (max-width: 768px) {
             .audio-player.expanded {
                 width: calc(100vw - 64px);
@@ -994,8 +998,8 @@
             <div class="seek-bar" id="seekBar">
                 <div class="seek-bar-progress" id="seekBarProgress"></div>
             </div>
-            <button class="control-btn" id="muteBtn" onclick="toggleMute()" aria-label="Mute/Unmute">
-                ♫
+            <button class="control-btn" id="muteBtn" aria-label="Volume" style="cursor: default; pointer-events: none; padding: 0; background: transparent; border: none;">
+                <img src="assets/sound.png" alt="Volume" style="width: 20px; height: 20px; display: block;">
             </button>
             <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="changeVolume(this.value)" aria-label="Volume">
         </div>
@@ -1029,7 +1033,6 @@
         const seekBarProgress = document.getElementById('seekBarProgress');
         const timeDisplay = document.getElementById('timeDisplay');
         const volumeSlider = document.getElementById('volumeSlider');
-        const muteBtn = document.getElementById('muteBtn');
 
         // Section navigation
         function showSection(sectionId, event) {
@@ -1216,28 +1219,6 @@
         // Volume control
         function changeVolume(value) {
             audioElement.volume = value / 100;
-            updateMuteButton();
-        }
-
-        // Toggle mute
-        function toggleMute() {
-            if (audioElement.volume > 0) {
-                audioElement.volume = 0;
-                volumeSlider.value = 0;
-            } else {
-                audioElement.volume = 1;
-                volumeSlider.value = 100;
-            }
-            updateMuteButton();
-        }
-
-        // Update mute button icon
-        function updateMuteButton() {
-            if (audioElement.volume === 0) {
-                muteBtn.textContent = '🔇';
-            } else {
-                muteBtn.textContent = '♫';
-            }
         }
 
         // Format time display
