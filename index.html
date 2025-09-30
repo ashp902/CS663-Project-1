@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Graduate-level tutorial on accessible fashion matching with computer vision for blind and visually impaired individuals">
+    <meta name="author" content="Ashish Padavala">
+    <title>Accessible Fashion Matching with Computer Vision for the Blind</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --ink: #111111;
+            --muted: #5f646d;
+            --line: #e6e6e8;
+            --ring: rgba(0, 0, 0, 0.08);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.6;
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid var(--line);
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 15px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            background: var(--line);
+        }
+
+        nav a:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px var(--ring);
+        }
+
+        nav a.active {
+            background: var(--ink);
+            color: var(--bg);
+        }
+
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+
+        section {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            margin-top: 48px;
+        }
+
+        h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            margin-top: 32px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            max-width: 680px;
+        }
+
+        .author {
+            color: var(--muted);
+            font-size: 19px;
+            margin-bottom: 40px;
+        }
+
+        button {
+            background: var(--bg);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            margin-bottom: 24px;
+        }
+
+        button:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--muted);
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px var(--ring);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        a {
+            color: var(--ink);
+            text-decoration: underline;
+            text-decoration-color: var(--line);
+            transition: text-decoration-color 0.2s ease;
+        }
+
+        a:hover {
+            text-decoration-color: var(--ink);
+        }
+
+        sup a {
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0 2px;
+        }
+
+        .quiz-container {
+            background: #f5f5f7;
+            border-radius: var(--radius);
+            padding: 32px;
+            margin: 32px 0;
+        }
+
+        .quiz-question {
+            margin-bottom: 32px;
+        }
+
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .quiz-options {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .quiz-options li {
+            margin-bottom: 8px;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-options label:hover {
+            border-color: var(--muted);
+        }
+
+        .quiz-options input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .quiz-result {
+            padding: 20px;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            margin-top: 24px;
+            display: none;
+        }
+
+        ol {
+            margin-left: 24px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 24px;
+        }
+
+        .bib-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .bib-meta {
+            color: var(--muted);
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .bib-synopsis {
+            margin-top: 8px;
+            font-size: 16px;
+        }
+
+        .bib-referenced {
+            margin-top: 8px;
+            font-size: 15px;
+            font-style: italic;
+            color: var(--muted);
+        }
+
+        footer {
+            border-top: 1px solid var(--line);
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        footer p {
+            margin: 0;
+            text-align: center;
+            max-width: none;
+        }
+
+        footer p + p {
+            margin-top: 8px;
+        }
+
+        /* Floating Audio Player */
+        .audio-player {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .audio-player.collapsed {
+            width: 56px;
+            height: 56px;
+        }
+
+        .audio-player.expanded {
+            width: 400px;
+            height: 56px;
+        }
+
+        .play-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: var(--bg);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: var(--shadow-md), 0 4px 16px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s ease;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .play-button:active {
+            transform: scale(0.95);
+        }
+
+        .audio-controls {
+            display: none;
+            background: var(--ink);
+            color: var(--bg);
+            border-radius: 28px;
+            padding: 0 24px;
+            box-shadow: var(--shadow-md), 0 4px 16px rgba(0, 0, 0, 0.12);
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .audio-player.expanded .audio-controls {
+            display: flex;
+        }
+
+        .audio-player.expanded .play-button {
+            display: none;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--bg);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease;
+            flex-shrink: 0;
+            line-height: 1;
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+        }
+
+        .control-btn:hover {
+            opacity: 0.7;
+        }
+
+        .control-btn:focus {
+            outline: none;
+        }
+
+        .seek-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .seek-bar-progress {
+            height: 100%;
+            background: var(--bg);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+            pointer-events: none;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 90px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            outline: none;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--bg);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: var(--bg);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* Audio Player Tooltip */
+        .audio-tooltip {
+            position: fixed;
+            bottom: 100px;
+            right: 32px;
+            background: var(--ink);
+            color: var(--bg);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md), 0 4px 16px rgba(0, 0, 0, 0.12);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 220px;
+            animation: tooltipFadeIn 0.3s ease;
+        }
+
+        .audio-tooltip.hidden {
+            display: none;
+        }
+
+        .audio-tooltip p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .tooltip-close {
+            background: none;
+            border: none;
+            color: var(--bg);
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .tooltip-close:hover {
+            opacity: 0.7;
+        }
+
+        @keyframes tooltipFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hide audio player on quiz and bibliography sections */
+        .audio-player.hidden {
+            display: none;
+        }
+
+        /* Paper figures with AI badge */
+        .paper-fig {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .paper-fig img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+            border: 1px solid #e6e6e8;
+        }
+
+        /* AI badge (bottom-right, text swap) */
+        .ai-badge {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            border-radius: 9999px;
+            padding: 6px;
+            min-width: 36px;
+            height: 36px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: default;
+            backdrop-filter: blur(2px) saturate(1.1);
+            transition: all 180ms ease;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        /* Hover state: expand + change label */
+        .ai-badge:hover {
+            padding: 6px 14px;
+            min-width: auto;
+            border-radius: 9999px;
+            background: rgba(0,0,0,0.7);
+        }
+
+        .ai-badge span {
+            transition: opacity 140ms ease;
+        }
+
+        /* Default text visible */
+        .ai-badge .label-default {
+            opacity: 1;
+        }
+
+        /* Hover text hidden initially */
+        .ai-badge .label-hover {
+            opacity: 0;
+            position: absolute;
+        }
+
+        /* Swap text on hover */
+        .ai-badge:hover .label-default {
+            opacity: 0;
+        }
+
+        .ai-badge:hover .label-hover {
+            opacity: 1;
+            position: static;
+        }
+
+        .readtime-pill {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.85rem;
+            line-height: 1;
+            color: #111;
+            background: rgba(0,0,0,0.06);
+            border: 1px solid #e6e6e8;
+            border-radius: 9999px;
+            padding: 6px 10px;
+            backdrop-filter: saturate(1.1) blur(2px);
+        }
+
+        main section {
+            position: relative; /* ensures absolute positioning works */
+        }
+
+        @media (max-width: 768px) {
+            .audio-player.expanded {
+                width: calc(100vw - 64px);
+                max-width: 400px;
+            }
+
+            input[type="range"] {
+                width: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 36px;
+            }
+
+            h2 {
+                font-size: 28px;
+            }
+
+            nav {
+                gap: 12px;
+            }
+
+            nav a {
+                font-size: 14px;
+                padding: 4px 8px;
+            }
+
+            main {
+                padding: 40px 20px;
+            }
+
+            .quiz-container {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav role="navigation" aria-label="Main navigation">
+            <a href="#introduction" class="nav-link active" onclick="showSection('introduction', event)">Introduction</a>
+            <a href="#datasets" class="nav-link" onclick="showSection('datasets', event)">Datasets</a>
+            <a href="#architecture" class="nav-link" onclick="showSection('architecture', event)">Architecture</a>
+            <a href="#algorithm" class="nav-link" onclick="showSection('algorithm', event)">Algorithms</a>
+            <a href="#performance" class="nav-link" onclick="showSection('performance', event)">Performance</a>
+            <a href="#limitations" class="nav-link" onclick="showSection('limitations', event)">Limitations</a>
+            <a href="#quiz" class="nav-link" onclick="showSection('quiz', event)">Quiz</a>
+            <a href="#bibliography" class="nav-link" onclick="showSection('bibliography', event)">Bibliography</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Accessible Fashion Matching with Computer Vision for the Blind</h1>
+
+        <section id="introduction" class="active">
+            <div class="readtime-pill" aria-label="3 minutes read">3 minutes read</div>
+            <h2>Introduction</h2>
+
+            <p>Fashion is more than clothing, it represents identity, confidence, and self-expression. For people who are blind or have low vision, the inability to independently assess color, pattern, or coordination can limit participation in social and professional contexts. Accessible fashion matching seeks to close this gap by leveraging computer vision, sensors, and artificial intelligence to interpret garments and communicate meaningful feedback.</p>
+
+            <p>The research landscape spans more than a decade of progress. Early work demonstrated that carefully designed color histograms and texture descriptors could support pairwise outfit matching with speech-based feedback <sup><a href="#ref-1">[1]</a></sup>. Later, integrated wardrobe systems combined cameras, RFID tags, and structured lighting to deliver consistent garment recognition and high user satisfaction <sup><a href="#ref-2">[2]</a></sup>. Beyond standalone devices, assistive CV surveys highlight the importance of robustness in uncontrolled environments, recommending low-latency, on-device inference with intuitive speech guidance <sup><a href="#ref-3">[3]</a></sup>. Practical modules now extend beyond matching to garment classification and stain detection, giving users insight into clothing care as well <sup><a href="#ref-4">[4]</a></sup>.</p>
+
+            <p>Meanwhile, deep learning in fashion recognition has expanded the toolkit: convolutional and transformer-based networks handle complex pattern detection, while inclusive fashion frameworks integrate sociocultural understanding with technical pipelines <sup><a href="#ref-5">[5]</a></sup><sup><a href="#ref-7">[7]</a></sup><sup><a href="#ref-8">[8]</a></sup>. Combined with wearable devices that capture and analyze clothing in real time <sup><a href="#ref-10">[10]</a></sup>, these advances show that accessible fashion systems are moving toward holistic, adaptive solutions. The remaining challenge is not feasibility but reliability, scalability, and trustworthiness in everyday contexts.</p>
+
+            <figure class="paper-fig" id="fig-1">
+                <img src="assets/fig-1.png"
+                     alt="Diagram of a blind person and wardrobe with clothing labeled by computer vision outputs."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+        </section>
+
+        <section id="datasets">
+            <div class="readtime-pill" aria-label="4 minutes read">4 minutes read</div>
+            <h2>Datasets</h2>
+
+            <p>Progress in accessible fashion matching has been closely tied to the datasets available for training and evaluation.</p>
+
+            <p><strong>Controlled prototypes.</strong> Early systems relied on their own curated image sets, capturing garments under varied rotation, illumination, and wrinkling. These collections were small but effective for testing color classification and texture recognition methods <sup><a href="#ref-1">[1]</a></sup>.</p>
+
+            <p><strong>Wardrobe-driven data.</strong> Integrated systems such as iSight build data dynamically as users tag and insert clothing into smart cabinets. Photos are logged under consistent lighting, ensuring recognition accuracy over time <sup><a href="#ref-2">[2]</a></sup>.</p>
+
+            <p><strong>Applied accessibility datasets.</strong> Work in category classification and stain detection introduces curated sets of clothing types and soiled garments, with transfer learning models reporting strong F1 scores in the 90% range <sup><a href="#ref-4">[4]</a></sup>.</p>
+
+            <p><strong>Deep learning benchmarks.</strong> Broader fashion-vision studies employ datasets such as <strong>DeepFashion</strong> (800k+ annotated images) and <strong>Fashion-MNIST</strong> (70k grayscale items), enabling robust model pretraining <sup><a href="#ref-5">[5]</a></sup>. Chapters on accessibility stress that such datasets, while powerful, must be adapted to reflect user wardrobes and cultural contexts <sup><a href="#ref-6">[6]</a></sup><sup><a href="#ref-7">[7]</a></sup><sup><a href="#ref-9">[9]</a></sup>.</p>
+
+            <p><strong>Wearable capture streams.</strong> Emerging wearable devices produce continuous data streams from glasses or belt-mounted cameras, raising challenges of annotation but promising real-world diversity <sup><a href="#ref-10">[10]</a></sup>.</p>
+
+            <p>Taken together, the dataset story is hybrid: start with controlled sets for validation, leverage large-scale public fashion data for robust feature learning, and continuously adapt models with the user's own wardrobe data.</p>
+
+            <figure class="paper-fig" id="fig-2">
+                <img src="assets/fig-2.png"
+                     alt="Comparison figure of Fashion-MNIST grayscale clothing silhouettes and DeepFashion color images."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+        </section>
+
+        <section id="architecture">
+            <div class="readtime-pill" aria-label="5 minutes read">5 minutes read</div>
+            <h2>Architecture</h2>
+
+            <p>Accessible fashion systems differ in scope and complexity, but several archetypes emerge.</p>
+
+            <p><strong>Classical CV pipelines.</strong> Early designs followed a modular approach: garment capture, HSV color histogram extraction with brightness/saturation gating, and texture analysis via wavelets or Radon signatures. Outputs were combined in a decision logic and conveyed through synthetic speech <sup><a href="#ref-1">[1]</a></sup>.</p>
+
+            <figure class="paper-fig" id="fig-3">
+                <img src="assets/fig-3.png"
+                     alt="Pipeline diagram showing steps from image input to color and texture extraction, decision logic, and audio feedback."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+
+            <p><strong>Smart wardrobe systems.</strong> Later work integrated mechatronics, embedding cameras, RFID/NFC tagging, and controlled lighting in a cabinet. Recognition modules handled garment type, color, and alteration detection. A connected database tracked the wardrobe, while accessible menus and speech feedback guided user interaction <sup><a href="#ref-2">[2]</a></sup>.</p>
+
+            <figure class="paper-fig" id="fig-4">
+                <img src="assets/fig-4.png"
+                     alt="System diagram of a smart wardrobe with cameras, tags, recognition modules, and user interface."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+
+            <p><strong>Deep learning modules.</strong> Pattern recognition studies demonstrated that CNNs outperform handcrafted features, capturing subtle textile cues such as plaid vs. stripe with greater robustness <sup><a href="#ref-5">[5]</a></sup>. Transformer-based multimodal models (vision + language) are also emerging for generating natural language descriptions of garments <sup><a href="#ref-7">[7]</a></sup><sup><a href="#ref-9">[9]</a></sup>.</p>
+
+            <p><strong>Accessibility-focused add-ons.</strong> Category classification and stain detection pipelines extend usability, giving blind users insight into garment condition before use <sup><a href="#ref-4">[4]</a></sup>. Research on inclusive fashion highlights the need to integrate social meaning and user preference models into the architecture <sup><a href="#ref-6">[6]</a></sup><sup><a href="#ref-8">[8]</a></sup>.</p>
+
+            <p><strong>Wearables.</strong> Systems mounted in glasses or belts capture images in real time and process them on-device, returning spoken guidance directly to the user. These prioritize low latency, privacy, and ergonomics <sup><a href="#ref-3">[3]</a></sup><sup><a href="#ref-10">[10]</a></sup>.</p>
+
+            <p>Overall, modern architectures blend the classical, controlled reliability of wardrobes with the adaptability and portability of deep learning and wearables.</p>
+        </section>
+
+        <section id="algorithm">
+            <div class="readtime-pill" aria-label="4 minutes read">4 minutes read</div>
+            <h2>Algorithms</h2>
+
+            <p>Algorithms form the backbone of accessible fashion matching, enabling the extraction of visual features, classification of garments, and delivery of accessible feedback. Across the referenced studies, researchers explored both classical computer vision pipelines and modern deep learning models to address challenges such as color detection, texture recognition, and pattern classification.</p>
+
+            <p><strong>Color analysis.</strong> Early prototypes relied on HSV color histograms with saturation and brightness gating. This approach reduces noise from lighting and ensures that colors like red, blue, and green are more reliably distinguished under varied conditions <sup><a href="#ref-1">[1]</a></sup>. Later systems integrated consistent lighting hardware to improve the reliability of these histogram-based methods <sup><a href="#ref-2">[2]</a></sup>.</p>
+
+            <p><strong>Texture and pattern recognition.</strong> Handcrafted descriptors such as wavelets, Radon transforms, and local binary patterns were initially used to capture fabric texture and repetitive motifs. These algorithms provided acceptable performance in controlled settings but struggled with complex prints and low-contrast fabrics <sup><a href="#ref-1">[1]</a></sup>. Deep convolutional networks later replaced handcrafted features, achieving significantly higher accuracy in distinguishing stripes, plaid, and floral designs <sup><a href="#ref-5">[5]</a></sup>.</p>
+
+            <p><strong>Garment classification.</strong> Transfer learning techniques—using pretrained CNNs on large datasets like DeepFashion—were adapted for category classification, covering shirts, pants, and dresses. Fine-tuned models reported F1 scores above 90%, demonstrating the effectiveness of leveraging large-scale fashion datasets for accessibility tasks <sup><a href="#ref-4">[4]</a></sup>.</p>
+
+            <p><strong>Stain detection.</strong> Applied research extended classification pipelines with instance segmentation networks such as Mask R-CNN. These algorithms detect stains on garments, offering blind users additional support for clothing care <sup><a href="#ref-4">[4]</a></sup>.</p>
+
+            <p><strong>Assistive integration.</strong> Algorithms were not only evaluated in isolation but embedded into larger systems. For example, smart wardrobes combined histogram-based color analysis with tag recognition algorithms for robust performance <sup><a href="#ref-2">[2]</a></sup>. Wearable devices required lightweight CNNs optimized for low latency and energy efficiency <sup><a href="#ref-10">[10]</a></sup>.</p>
+
+            <p>In summary, classical algorithms established feasibility, while deep learning and transfer learning now dominate research for their robustness and accuracy. However, lightweight and interpretable algorithms remain important for embedded and wearable applications, highlighting the balance between performance and accessibility.</p>
+        </section>
+
+        <section id="performance">
+            <div class="readtime-pill" aria-label="3 minutes read">3 minutes read</div>
+            <h2>Performance</h2>
+
+            <p>Evaluating accessible fashion systems requires both technical metrics and user-centered outcomes.</p>
+
+            <p><strong>Controlled benchmarks.</strong> Early pipelines achieved ~99% color classification accuracy under test conditions, and ~92% accuracy for pattern recognition tasks <sup><a href="#ref-1">[1]</a></sup><sup><a href="#ref-5">[5]</a></sup>. These results validate the feasibility of classical color and texture features.</p>
+
+            <figure class="paper-fig" id="fig-5">
+                <img src="assets/fig-5.png"
+                     alt="Bar chart showing high accuracy for color, pattern, and stain recognition."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+
+            <p><strong>Smart wardrobe studies.</strong> iSight evaluations with 15 blind/low-vision participants reported strong satisfaction: 80% rated color detection "very accurate," 86% confirmed tag recognition reliability, and user questionnaires confirmed improved confidence and independence <sup><a href="#ref-2">[2]</a></sup>.</p>
+
+            <figure class="paper-fig" id="fig-6">
+                <img src="assets/fig-6.png"
+                     alt="Bar chart summarizing user study results from iSight smart wardrobe system."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+
+            <p><strong>Applied tasks.</strong> Transfer-learning pipelines for garment category classification achieved ~91% F1 scores, while stain detection proved feasible with fine-tuned instance segmentation <sup><a href="#ref-4">[4]</a></sup>. These results show that practical wardrobe tasks beyond matching can be supported.</p>
+
+            <p><strong>Robustness.</strong> While controlled studies show near-perfect accuracy, real-world deployments suffer under uncontrolled lighting, low-contrast fabrics, or untrained cultural garments. Wearables must also balance accuracy with battery and latency constraints <sup><a href="#ref-3">[3]</a></sup><sup><a href="#ref-10">[10]</a></sup>.</p>
+
+            <p><strong>Holistic evaluation.</strong> Beyond accuracy, inclusive fashion research stresses usability, trust, and dignity. Metrics should capture not only technical success but also whether the system empowers users socially and practically <sup><a href="#ref-6">[6]</a></sup><sup><a href="#ref-8">[8]</a></sup>.</p>
+
+            <p>Together, the evidence shows technical feasibility is established, but generalization and usability remain the core barriers to widespread adoption.</p>
+        </section>
+
+        <section id="limitations">
+            <div class="readtime-pill" aria-label="4 minutes read">4 minutes read</div>
+            <h2>Limitations</h2>
+
+            <p>Despite encouraging progress, key challenges remain:</p>
+
+            <ol>
+                <li><strong>Environmental variability.</strong> Color and pattern recognition degrade under poor lighting, shadows, or wrinkling, highlighting the need for normalization and adaptive capture <sup><a href="#ref-1">[1]</a></sup><sup><a href="#ref-2">[2]</a></sup>.</li>
+            </ol>
+
+            <figure class="paper-fig" id="fig-7">
+                <img src="assets/fig-7.png"
+                     alt="Same garment shown under three different lighting conditions to illustrate variability."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+
+            <ol start="2">
+                <li><strong>Pattern ambiguity.</strong> Dense prints or low-contrast textiles remain difficult to separate, even with deep learning <sup><a href="#ref-5">[5]</a></sup>.</li>
+                <li><strong>Generalization.</strong> Wardrobe-trained models may not adapt to new fabrics, garments, or cultural attire without continual learning <sup><a href="#ref-2">[2]</a></sup><sup><a href="#ref-6">[6]</a></sup><sup><a href="#ref-7">[7]</a></sup>.</li>
+                <li><strong>User burden.</strong> RFID/NFC tagging adds setup effort, wearable devices may be intrusive, and complex menus can overwhelm users <sup><a href="#ref-2">[2]</a></sup><sup><a href="#ref-10">[10]</a></sup>.</li>
+                <li><strong>Scale of evaluation.</strong> Most studies involve small datasets or limited user trials. Long-term, diverse deployments are rare, limiting confidence in real-world reliability <sup><a href="#ref-3">[3]</a></sup><sup><a href="#ref-4">[4]</a></sup><sup><a href="#ref-6">[6]</a></sup>.</li>
+                <li><strong>Sociocultural gaps.</strong> Fashion carries meaning beyond pattern and color; research in fashion theory emphasizes the importance of integrating personal style, culture, and dignity into system design <sup><a href="#ref-8">[8]</a></sup>.</li>
+            </ol>
+
+            <p>In short, accessible fashion technology is technically sound but faces practical, cultural, and usability constraints that must be addressed for real adoption.</p>
+
+            <figure class="paper-fig" id="fig-8">
+                <img src="assets/fig-8.png"
+                     alt="Concept diagram summarizing system limitations in accessible fashion matching."
+                     loading="lazy" decoding="async">
+                <div class="ai-badge" aria-hidden="true">
+                    <span class="label-default">AI</span>
+                    <span class="label-hover">Generated using Gemini AI</span>
+                </div>
+            </figure>
+        </section>
+
+        <section id="quiz">
+            <h2>Quiz</h2>
+
+            <div class="quiz-container">
+                <div class="quiz-question">
+                    <p>1. Which two visual cues are most often combined to decide pairwise garment matching?</p>
+                    <ul class="quiz-options">
+                        <li><label><input type="radio" name="q1" value="a"> A) Size and weight</label></li>
+                        <li><label><input type="radio" name="q1" value="b"> B) Brand and price</label></li>
+                        <li><label><input type="radio" name="q1" value="c"> C) Color and pattern/texture</label></li>
+                        <li><label><input type="radio" name="q1" value="d"> D) Fabric composition</label></li>
+                    </ul>
+                </div>
+
+                <div class="quiz-question">
+                    <p>2. What data strategy best supports real-world reliability for accessible fashion matching?</p>
+                    <ul class="quiz-options">
+                        <li><label><input type="radio" name="q2" value="a"> A) Only a large public dataset</label></li>
+                        <li><label><input type="radio" name="q2" value="b"> B) A small controlled set plus in-situ wardrobe data</label></li>
+                        <li><label><input type="radio" name="q2" value="c"> C) Only synthetic data</label></li>
+                        <li><label><input type="radio" name="q2" value="d"> D) Only web-scraped shopping photos</label></li>
+                    </ul>
+                </div>
+
+                <div class="quiz-question">
+                    <p>3. An integrated smart wardrobe most critically benefits from which design choice?</p>
+                    <ul class="quiz-options">
+                        <li><label><input type="radio" name="q3" value="a"> A) Randomized lighting</label></li>
+                        <li><label><input type="radio" name="q3" value="b"> B) Consistent cabinet lighting and item tagging</label></li>
+                        <li><label><input type="radio" name="q3" value="c"> C) Removing the database</label></li>
+                        <li><label><input type="radio" name="q3" value="d"> D) Disabling audio feedback</label></li>
+                    </ul>
+                </div>
+
+                <div class="quiz-question">
+                    <p>4. Which applied module directly supports garment care for blind users?</p>
+                    <ul class="quiz-options">
+                        <li><label><input type="radio" name="q4" value="a"> A) Pose estimation</label></li>
+                        <li><label><input type="radio" name="q4" value="b"> B) OCR only</label></li>
+                        <li><label><input type="radio" name="q4" value="c"> C) Stain detection via fine-tuned instance segmentation</label></li>
+                        <li><label><input type="radio" name="q4" value="d"> D) 3D reconstruction</label></li>
+                    </ul>
+                </div>
+
+                <div class="quiz-question">
+                    <p>5. A common limitation across systems is:</p>
+                    <ul class="quiz-options">
+                        <li><label><input type="radio" name="q5" value="a"> A) Infinite battery life in wearables</label></li>
+                        <li><label><input type="radio" name="q5" value="b"> B) No need for user training</label></li>
+                        <li><label><input type="radio" name="q5" value="c"> C) Sensitivity to lighting and generalization to new garments</label></li>
+                        <li><label><input type="radio" name="q5" value="d"> D) Guaranteed 100% accuracy</label></li>
+                    </ul>
+                </div>
+
+                <button onclick="checkQuiz()">Check Answers</button>
+
+                <div id="quizResult" class="quiz-result">
+                    <p><strong>Score:</strong> <span id="quizScore"></span></p>
+                    <p id="quizFeedback" style="margin-top: 12px;"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="bibliography">
+            <h2>Bibliography</h2>
+
+            <ol>
+                <li id="ref-1">
+                    <div class="bib-title"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3328861/" target="_blank" rel="noopener">Clothing matching for visually impaired persons</a></div>
+                    <div class="bib-meta">Yuan, S.; Tian, Y.; Arditi, A. | Technology and Disability, 2011</div>
+                    <div class="bib-synopsis">Proof-of-concept pipeline that compares two garments via color and texture features under rotation/illumination/wrinkling, with audio feedback.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#introduction">Introduction</a>, <a href="#datasets">Datasets</a>, <a href="#architecture">Architecture</a>, <a href="#algorithm">Algorithms</a>, <a href="#performance">Performance</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-2">
+                    <div class="bib-title"><a href="https://www.mdpi.com/2078-2489/16/5/383" target="_blank" rel="noopener">iSight: A smart clothing management system to empower blind and visually impaired individuals</a></div>
+                    <div class="bib-meta">Rocha, D.; Leão, C.P.; Soares, F.; Carvalho, V. | Information (MDPI), 2025, 16(5):383</div>
+                    <div class="bib-synopsis">Mechatronic wardrobe with consistent lighting, tags, and AI modules for identification and color; a 15-participant study reports high satisfaction and perceived accuracy.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#introduction">Introduction</a>, <a href="#datasets">Datasets</a>, <a href="#architecture">Architecture</a>, <a href="#algorithm">Algorithms</a>, <a href="#performance">Performance</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-3">
+                    <div class="bib-title"><a href="https://ieeexplore.ieee.org/abstract/document/9820475" target="_blank" rel="noopener">Vision4All - A Deep Learning Fashion Assistance Solution For Blinds</a></div>
+                    <div class="bib-meta">IEEE, 2022</div>
+                    <div class="bib-synopsis">Survey/overview of computer-vision based assistive methods, highlighting sensing, on-device inference, and feedback considerations.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#introduction">Introduction</a>, <a href="#datasets">Datasets</a>, <a href="#performance">Performance</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-4">
+                    <div class="bib-title"><a href="https://www.mdpi.com/2076-3417/13/3/1925" target="_blank" rel="noopener">Blind People: Clothing Category Classification and Stain Detection</a></div>
+                    <div class="bib-meta">Applied Sciences (MDPI), 2023</div>
+                    <div class="bib-synopsis">Transfer learning for garment category classification (best model ≈ 91% F1) and stain detection via fine-tuned instance segmentation.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#introduction">Introduction</a>, <a href="#datasets">Datasets</a>, <a href="#architecture">Architecture</a>, <a href="#algorithm">Algorithms</a>, <a href="#performance">Performance</a></div>
+                </li>
+
+                <li id="ref-5">
+                    <div class="bib-title"><a href="https://link.springer.com/chapter/10.1007/978-3-030-32040-9_42" target="_blank" rel="noopener">Extracting Clothing Features for Blind People Using Image Processing and Machine Learning Techniques: First Insights</a></div>
+                    <div class="bib-meta">Springer, 2019</div>
+                    <div class="bib-synopsis">Deep-learning methods for clothing pattern categories (e.g., stripes, plaid), offering modern alternatives to classical texture features.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#introduction">Introduction</a>, <a href="#algorithm">Algorithms</a>, <a href="#performance">Performance</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-6">
+                    <div class="bib-title"><a href="https://d1wqtxts1xzle7.cloudfront.net/30791642/1-libre.pdf" target="_blank" rel="noopener">Making Fashion Accessible for People with Vision Impairments</a></div>
+                    <div class="bib-meta">Hurst, A., 2009</div>
+                    <div class="bib-synopsis">Early accessibility perspective on fashion, emphasizing user needs, social factors, and interaction design implications.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#datasets">Datasets</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-7">
+                    <div class="bib-title"><a href="https://link.springer.com/chapter/10.1007/978-3-031-67307-8_5" target="_blank" rel="noopener">An Automated Tool for Creating Clothing Catalog Databases: MyEyes–Fashion</a></div>
+                    <div class="bib-meta">Springer, 2024</div>
+                    <div class="bib-synopsis">Emerging directions for inclusive fashion AI, discussing multimodal pipelines and accessibility-oriented UX.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#introduction">Introduction</a>, <a href="#datasets">Datasets</a>, <a href="#architecture">Architecture</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-8">
+                    <div class="bib-title"><a href="https://www.tandfonline.com/doi/abs/10.2752/175693813X13559997788808" target="_blank" rel="noopener">Preliminary Investigation of the Limitations Fashion Presents to Those with Vision Impairments</a></div>
+                    <div class="bib-meta">Entwistle, J. | Fashion Theory, 2013</div>
+                    <div class="bib-synopsis">Socio-cultural framing of fashion and disability; useful context for evaluating user impact and adoption.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-9">
+                    <div class="bib-title"><a href="https://link.springer.com/chapter/10.1007/978-981-99-3485-0_78" target="_blank" rel="noopener">Outfit Recommendation System Based on Colour Compatibility to Assist Colour Blind Users - A Survey</a></div>
+                    <div class="bib-meta">Springer, 2023</div>
+                    <div class="bib-synopsis">Techniques for color/pattern analysis in accessibility settings; discusses lighting normalization and evaluation approaches.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#datasets">Datasets</a>, <a href="#architecture">Architecture</a>, <a href="#performance">Performance</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+
+                <li id="ref-10">
+                    <div class="bib-title"><a href="https://ieeexplore.ieee.org/abstract/document/8723271" target="_blank" rel="noopener">Assistant for Visually Impaired using Computer Vision</a></div>
+                    <div class="bib-meta">IEEE, 2019</div>
+                    <div class="bib-synopsis">Wearable CV design considerations (cameras, compute, latency, audio feedback), complementing wardrobe-based systems.</div>
+                    <div class="bib-referenced"><strong>Referenced in:</strong> <a href="#introduction">Introduction</a>, <a href="#architecture">Architecture</a>, <a href="#algorithm">Algorithms</a>, <a href="#performance">Performance</a>, <a href="#limitations">Limitations</a></div>
+                </li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <p>Deployed on GitHub Pages.</p>
+        <p>&copy; 2025 Ashish Padavala</p>
+    </footer>
+
+    <!-- Floating Audio Player -->
+    <div class="audio-player collapsed" id="audioPlayer">
+        <button class="play-button" id="playButton" onclick="toggleAudio()" aria-label="Play audio">
+            ▶
+        </button>
+        <div class="audio-controls" id="audioControls">
+            <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()" aria-label="Play/Pause">
+                ⏸
+            </button>
+            <div class="seek-bar" id="seekBar">
+                <div class="seek-bar-progress" id="seekBarProgress"></div>
+            </div>
+            <button class="control-btn" id="muteBtn" onclick="toggleMute()" aria-label="Mute/Unmute">
+                ♫
+            </button>
+            <input type="range" id="volumeSlider" min="0" max="100" value="100" oninput="changeVolume(this.value)" aria-label="Volume">
+        </div>
+    </div>
+
+    <!-- Audio Player Tooltip -->
+    <div class="audio-tooltip" id="audioTooltip">
+        <p>Click to hear audio explanation</p>
+        <button class="tooltip-close" onclick="closeTooltip()" aria-label="Close tooltip">×</button>
+    </div>
+
+    <audio id="audioElement" preload="metadata"></audio>
+
+    <script>
+        // Audio files for each section
+        const audioFiles = {
+            'introduction': 'assets/audio/Introduction.m4a',
+            'datasets': 'assets/audio/Datasets.m4a',
+            'architecture': 'assets/audio/Architecture.m4a',
+            'algorithm': 'assets/audio/Algorithms.m4a',
+            'performance': 'assets/audio/Performance.m4a',
+            'limitations': 'assets/audio/Limitations.m4a'
+        };
+
+        let currentSection = 'introduction';
+        const audioElement = document.getElementById('audioElement');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playButton = document.getElementById('playButton');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const seekBar = document.getElementById('seekBar');
+        const seekBarProgress = document.getElementById('seekBarProgress');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const muteBtn = document.getElementById('muteBtn');
+
+        // Section navigation
+        function showSection(sectionId, event) {
+            if (event) {
+                event.preventDefault();
+            }
+
+            // Hide all sections
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Update nav active state
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+
+            const activeLink = document.querySelector(`.nav-link[href="#${sectionId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            // Update current section and audio source
+            currentSection = sectionId;
+            updateAudioSource();
+
+            // Hide audio player on quiz and bibliography sections
+            updateAudioPlayerVisibility();
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Update audio player visibility based on current section
+        function updateAudioPlayerVisibility() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const audioTooltip = document.getElementById('audioTooltip');
+
+            if (currentSection === 'quiz' || currentSection === 'bibliography') {
+                audioPlayer.classList.add('hidden');
+                audioTooltip.classList.add('hidden');
+            } else {
+                audioPlayer.classList.remove('hidden');
+            }
+        }
+
+        // Update audio source when section changes
+        function updateAudioSource() {
+  const wasPlaying = !audioElement.paused;
+  const nextSrc = audioFiles[currentSection];
+
+  if (audioElement.src !== new URL(nextSrc, window.location.href).toString()) {
+    audioElement.pause();
+    audioElement.src = nextSrc;
+    audioElement.load();
+  }
+
+  audioPlayer.classList.remove('expanded');
+  audioPlayer.classList.add('collapsed');
+
+  if (wasPlaying) {
+    audioElement.play();
+  }
+}
+
+        // Toggle audio player (initial play button)
+        function toggleAudio() {
+            audioPlayer.classList.remove('collapsed');
+            audioPlayer.classList.add('expanded');
+            audioElement.play();
+        }
+
+        // Toggle play/pause
+        function togglePlayPause() {
+            if (audioElement.paused) {
+                audioElement.play();
+            } else {
+                audioElement.pause();
+                // Manually trigger collapse when pause button is clicked
+                audioPlayer.classList.remove('expanded');
+                audioPlayer.classList.add('collapsed');
+            }
+        }
+
+        // Seek functionality
+
+        function seekWhenReady(targetTime, shouldResume) {
+    const trySeek = () => {
+      const canSeek =
+        Number.isFinite(audioElement.duration) &&
+        audioElement.duration > 0 &&
+        audioElement.seekable && audioElement.seekable.length > 0;
+
+      if (!canSeek) return false;
+
+      const clamped = Math.max(0, Math.min(targetTime, audioElement.duration));
+      if (typeof audioElement.fastSeek === 'function') {
+        audioElement.fastSeek(clamped);
+      } else {
+        audioElement.currentTime = clamped;
+      }
+      if (shouldResume) audioElement.play();
+      return true;
+    };
+
+    // Try immediately
+    if (trySeek()) return;
+
+    // Otherwise wait for metadata or progress, then try once
+    const once = () => {
+      if (trySeek()) {
+        audioElement.removeEventListener('loadedmetadata', once);
+        audioElement.removeEventListener('progress', once);
+        audioElement.removeEventListener('canplay', once);
+        audioElement.removeEventListener('canplaythrough', once);
+      }
+    };
+    audioElement.addEventListener('loadedmetadata', once, { once: true });
+    audioElement.addEventListener('progress', once);
+    audioElement.addEventListener('canplay', once, { once: true });
+    audioElement.addEventListener('canplaythrough', once, { once: true });
+
+    // Ensure the element starts loading if it was idle
+    // (No src change here, so this will not reset playback)
+    if (audioElement.readyState === 0) {
+      audioElement.load();
+    }
+  }
+
+  seekBar.addEventListener('click', function (event) {
+    // Prevent any bubbling surprises
+    event.stopPropagation();
+
+    // Ensure the bar has a measurable width
+    const rect = seekBar.getBoundingClientRect();
+    if (!rect || rect.width <= 0) {
+        console.log('Seek aborted: seek bar has zero width.');
+        return;
+    }
+
+    // Ensure we actually know the duration
+    const hasMeta = Number.isFinite(audioElement.duration) && audioElement.duration > 0;
+    if (!hasMeta) {
+        console.log('Seek aborted: duration not ready yet.');
+        return;
+    }
+
+    const clickX = event.clientX - rect.left;
+    // Clamp percent strictly below 1 to avoid firing "ended"
+    const percent = Math.max(0, Math.min(0.999, clickX / rect.width));
+
+    // Compute a safe new time (stay a hair before duration)
+    const target = percent * audioElement.duration;
+    const epsilon = 0.05; // 50ms buffer to avoid exact-end edge cases
+    const newTime = Math.min(Math.max(0, target), Math.max(0, audioElement.duration - epsilon));
+
+    const wasPlaying = !audioElement.paused && !audioElement.ended;
+
+    // Set time; pausing first avoids occasional jank on some browsers
+    const shouldResume = wasPlaying;
+    audioElement.pause();
+    if (typeof audioElement.fastSeek === 'function') {
+        audioElement.fastSeek(newTime);
+    } else {
+        audioElement.currentTime = newTime;
+    }
+    if (shouldResume) {
+        // Resume playback at the sought position
+        audioElement.play().catch(() => {
+            // If autoplay is blocked, leave it paused at the correct spot
+        });
+    }
+});
+
+
+        // Volume control
+        function changeVolume(value) {
+            audioElement.volume = value / 100;
+            updateMuteButton();
+        }
+
+        // Toggle mute
+        function toggleMute() {
+            if (audioElement.volume > 0) {
+                audioElement.volume = 0;
+                volumeSlider.value = 0;
+            } else {
+                audioElement.volume = 1;
+                volumeSlider.value = 100;
+            }
+            updateMuteButton();
+        }
+
+        // Update mute button icon
+        function updateMuteButton() {
+            if (audioElement.volume === 0) {
+                muteBtn.textContent = '🔇';
+            } else {
+                muteBtn.textContent = '♫';
+            }
+        }
+
+        // Format time display
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Audio event listeners
+        audioElement.addEventListener('play', () => {
+            playPauseBtn.textContent = '⏸';
+            audioPlayer.classList.remove('collapsed');
+            audioPlayer.classList.add('expanded');
+        });
+
+        audioElement.addEventListener('pause', () => {
+            playPauseBtn.textContent = '▶';
+        });
+
+        audioElement.addEventListener('timeupdate', () => {
+            if (audioElement.duration && !isNaN(audioElement.duration)) {
+                const percent = (audioElement.currentTime / audioElement.duration) * 100;
+                seekBarProgress.style.width = percent + '%';
+            }
+        });
+
+        audioElement.addEventListener('ended', () => {
+            playPauseBtn.textContent = '▶';
+            seekBarProgress.style.width = '0%';
+            // Collapse back to circular button when ended
+            audioPlayer.classList.remove('expanded');
+            audioPlayer.classList.add('collapsed');
+        });
+
+        // Initialize audio source
+        audioElement.src = audioFiles[currentSection];
+
+        // Handle audio loading errors
+        audioElement.addEventListener('error', (e) => {
+            console.warn('Audio file not found:', audioFiles[currentSection]);
+            // Collapse player if audio fails to load
+            audioPlayer.classList.remove('expanded');
+            audioPlayer.classList.add('collapsed');
+        });
+
+        // Add loadedmetadata event to ensure duration is available
+        audioElement.addEventListener('loadedmetadata', () => {
+            console.log('Audio loaded, duration:', audioElement.duration);
+        });
+
+        // Debug: Track when currentTime changes
+        audioElement.addEventListener('seeking', () => {
+            console.log('Seeking to:', audioElement.currentTime);
+        });
+
+        audioElement.addEventListener('seeked', () => {
+            console.log('Seeked to:', audioElement.currentTime);
+        });
+
+        // Debug: Track loadstart which resets currentTime
+        audioElement.addEventListener('loadstart', () => {
+            console.log('Load start - currentTime will reset to 0');
+        });
+
+        // Quiz functionality
+        function checkQuiz() {
+            const answers = {
+                q1: 'c',  // Color and pattern/texture
+                q2: 'b',  // A small controlled set plus in-situ wardrobe data
+                q3: 'b',  // Consistent cabinet lighting and item tagging
+                q4: 'c',  // Stain detection via fine-tuned instance segmentation
+                q5: 'c'   // Sensitivity to lighting and generalization to new garments
+            };
+
+            let score = 0;
+            const feedback = [];
+
+            for (let q in answers) {
+                const selected = document.querySelector(`input[name="${q}"]:checked`);
+                if (selected && selected.value === answers[q]) {
+                    score++;
+                }
+            }
+
+            if (score === 5) {
+                feedback.push('Perfect! You have a strong understanding of accessible fashion matching systems.');
+            } else if (score >= 3) {
+                feedback.push('Good work! You understand the key concepts. Review the sections for deeper understanding.');
+            } else {
+                feedback.push('Review the tutorial carefully. Focus on the challenges, datasets, and system performance.');
+            }
+
+            // Specific feedback
+            const q1Selected = document.querySelector('input[name="q1"]:checked');
+            if (!q1Selected || q1Selected.value !== 'b') {
+                feedback.push('Q1: The tutorial emphasizes perception (color, pattern) and guidance as the two main challenges.');
+            }
+
+            const q2Selected = document.querySelector('input[name="q2"]:checked');
+            if (!q2Selected || q2Selected.value !== 'c') {
+                feedback.push('Q2: Fashion-MNIST contains 70k grayscale clothing items, while DeepFashion has 800k+ images.');
+            }
+
+            const q3Selected = document.querySelector('input[name="q3"]:checked');
+            if (!q3Selected || q3Selected.value !== 'b') {
+                feedback.push('Q3: Lighting variation is a major environmental challenge affecting color perception.');
+            }
+
+            const q4Selected = document.querySelector('input[name="q4"]:checked');
+            if (!q4Selected || q4Selected.value !== 'c') {
+                feedback.push('Q4: The iSight study reported ~80% of participants rated color detection as "very accurate."');
+            }
+
+            const q5Selected = document.querySelector('input[name="q5"]:checked');
+            if (!q5Selected || q5Selected.value !== 'b') {
+                feedback.push('Q5: RFID/NFC tagging is mentioned as a usability barrier due to the burden of tagging garments.');
+            }
+
+            document.getElementById('quizScore').textContent = score + ' / 5';
+            document.getElementById('quizFeedback').innerHTML = feedback.join('<br><br>');
+            document.getElementById('quizResult').style.display = 'block';
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            // Don't interfere with input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            const sections = ['introduction', 'datasets', 'architecture', 'algorithm', 'performance', 'limitations', 'quiz', 'bibliography'];
+            const currentIndex = sections.indexOf(currentSection);
+
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                // Next section
+                if (currentIndex < sections.length - 1) {
+                    e.preventDefault();
+                    showSection(sections[currentIndex + 1]);
+                }
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                // Previous section
+                if (currentIndex > 0) {
+                    e.preventDefault();
+                    showSection(sections[currentIndex - 1]);
+                }
+            } else if (e.key === ' ') {
+                // Spacebar toggles play/pause
+                e.preventDefault();
+                togglePlayPause();
+            }
+        });
+
+        // Close tooltip function
+        function closeTooltip() {
+            const tooltip = document.getElementById('audioTooltip');
+            tooltip.classList.add('hidden');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('introduction');
+
+            // Show tooltip on every page load
+            const tooltip = document.getElementById('audioTooltip');
+            tooltip.classList.remove('hidden');
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (!tooltip.classList.contains('hidden')) {
+                    closeTooltip();
+                }
+            }, 5000);
+        });
+    </script>
+
+    
+</body>
+</html>
