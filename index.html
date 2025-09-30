@@ -1040,6 +1040,11 @@
                 event.preventDefault();
             }
 
+            // Close tooltip when navigating to a different section
+            if (currentSection !== sectionId) {
+                closeTooltip();
+            }
+
             // Hide all sections
             const sections = document.querySelectorAll('section');
             sections.forEach(section => {
@@ -1386,13 +1391,6 @@
             // Show tooltip on every page load
             const tooltip = document.getElementById('audioTooltip');
             tooltip.classList.remove('hidden');
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                if (!tooltip.classList.contains('hidden')) {
-                    closeTooltip();
-                }
-            }, 5000);
         });
     </script>
 
